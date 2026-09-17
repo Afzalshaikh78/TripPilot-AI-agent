@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Any
+from langchain_mistralai import ChatMistralAI
 from pydantic import BaseModel
 
 from travel_graph import run_travel_agent
