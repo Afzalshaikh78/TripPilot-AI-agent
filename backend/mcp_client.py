@@ -5,12 +5,10 @@ from pathlib import Path
 from typing import Any
 import certifi
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_mistralai import ChatMistralAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 Gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 

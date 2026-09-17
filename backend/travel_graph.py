@@ -1,8 +1,9 @@
 import os 
 import certifi
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
@@ -12,7 +13,6 @@ import uuid
 import asyncio
 import psycopg
 from psycopg.rows import dict_row
-from langchain_mistralai import ChatMistralAI
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.postgres import PostgresSaver
@@ -24,7 +24,6 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langgraph.graph.message import add_messages
-from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 # from tools.tavily_tool import tavily_search

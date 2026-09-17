@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import traceback
 import uvicorn
 
@@ -6,16 +7,18 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Any
 from pydantic import BaseModel
 
-from backend import run_travel_agent
+from travel_graph import run_travel_agent
 from mcp_client import get_all_tools
 
 # REMOVED: nest_asyncio.apply() — this was breaking anyio's event loop
 # detection used internally by StaticFiles.
 
-BASE_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = Path(__file__).resolve().parent
+BASE_DIR = BACKEND_DIR.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
 FRONTEND_ASSETS = FRONTEND_DIST / "assets"
@@ -24,6 +27,18 @@ app = FastAPI(
     title="TripPilot AI",
     description="LangGraph Multi-Agent Travel Planner with FastAPI Frontend",
     version="1.0.0"
+)
+
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_methods=["POST"],
+    allow_headers=["Content-Type"],
 )
 
 
@@ -109,4 +124,9 @@ async def favicon():
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "8000")),
+        reload=os.getenv("ENVIRONMENT") != "production",
+    )

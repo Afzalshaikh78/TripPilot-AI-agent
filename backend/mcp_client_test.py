@@ -1,5 +1,6 @@
 import os
 import asyncio
+from pathlib import Path
 from dotenv import load_dotenv
 import certifi
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -7,7 +8,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 

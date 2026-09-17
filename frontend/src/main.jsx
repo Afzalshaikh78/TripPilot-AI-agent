@@ -26,6 +26,8 @@ const prompts = [
   },
 ];
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
 function App() {
   const [message, setMessage] = React.useState("");
   const [threadId, setThreadId] = React.useState(
@@ -38,7 +40,7 @@ function App() {
   const [error, setError] = React.useState("");
 
   const requestPlan = async (payload) => {
-    const response = await fetch("/api/travel", {
+    const response = await fetch(`${apiBaseUrl}/api/travel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
