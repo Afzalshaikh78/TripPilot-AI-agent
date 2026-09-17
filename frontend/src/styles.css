@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+}
+
+@layer utilities {
+  .travel-markdown h1 { @apply mb-4 mt-8 border-b-4 border-blue-600 pb-3 text-3xl font-black text-slate-900; }
+  .travel-markdown h2 { @apply mt-7 rounded-xl bg-blue-50 px-4 py-3 text-2xl font-black text-slate-900; }
+  .travel-markdown h3 { @apply mt-6 text-xl font-bold text-blue-700; }
+  .travel-markdown p { @apply mb-4 leading-8 text-slate-700; }
+  .travel-markdown ul, .travel-markdown ol { @apply mb-5 ml-6 text-slate-700; }
+  .travel-markdown li { @apply mb-2 leading-7; }
+  .travel-markdown strong { @apply font-extrabold text-slate-900; }
+  .travel-markdown table { @apply my-5 w-full border-collapse text-left; }
+  .travel-markdown th, .travel-markdown td { @apply border border-slate-200 p-3; }
+  .travel-markdown th { @apply bg-blue-50 font-bold text-slate-900; }
+}
+
+@media print {
+  body { background: white; }
+  button, footer { display: none !important; }
+  .travel-markdown h1, .travel-markdown h2, .travel-markdown h3, .travel-markdown p, .travel-markdown li { color: #111827 !important; }
+}
