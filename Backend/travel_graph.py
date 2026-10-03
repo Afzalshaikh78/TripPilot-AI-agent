@@ -386,18 +386,6 @@ graph.add_edge("final_agent", END)
 
 DATABASE_URL = get_database_url()
 
-_conn = psycopg.connect(
-    DATABASE_URL,
-    autocommit=True,
-    row_factory=dict_row
-)
-
-checkpointer = PostgresSaver(_conn)
-checkpointer.setup()
-
-
-travel_graph = graph.compile(checkpointer=checkpointer)
-
 
 
 def run_travel_agent(
@@ -414,26 +402,33 @@ def run_travel_agent(
         }
     }
 
-    if answers is not None:
-        result = travel_graph.invoke(Command(resume=answers), config=config)
-    else:
-        result = travel_graph.invoke(
-            {
-                "messages": [HumanMessage(content=user_input or "")],
-                "user_query": user_input or "",
-                "flight_results": "",
-                "hotel_results": "",
-                "weather_results": "",
-                "itinerary": "",
-                "final_response": "",
-                "llm_calls": 0,
-                "intent": {},
-                "missing_slots": [],
-                "intent_status": "needs_clarification",
-                "clarification_answers": {},
-            },
-            config=config,
-        )
+    # Neon can close idle serverless connections. Create a connection for each
+    # invocation while checkpoints remain persisted under the same thread ID.
+    with psycopg.connect(DATABASE_URL, autocommit=True, row_factory=dict_row) as connection:
+        checkpointer = PostgresSaver(connection)
+        checkpointer.setup()
+        travel_graph = graph.compile(checkpointer=checkpointer)
+
+        if answers is not None:
+            result = travel_graph.invoke(Command(resume=answers), config=config)
+        else:
+            result = travel_graph.invoke(
+                {
+                    "messages": [HumanMessage(content=user_input or "")],
+                    "user_query": user_input or "",
+                    "flight_results": "",
+                    "hotel_results": "",
+                    "weather_results": "",
+                    "itinerary": "",
+                    "final_response": "",
+                    "llm_calls": 0,
+                    "intent": {},
+                    "missing_slots": [],
+                    "intent_status": "needs_clarification",
+                    "clarification_answers": {},
+                },
+                config=config,
+            )
 
     interruptions = result.get("__interrupt__", ())
     if interruptions:
