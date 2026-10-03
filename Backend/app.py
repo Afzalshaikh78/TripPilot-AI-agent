@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import traceback
+import time
 import uvicorn
 
 from fastapi import FastAPI, Request
@@ -13,6 +14,7 @@ from pydantic import BaseModel
 
 from travel_graph import run_travel_agent
 from mcp_client import get_all_tools
+from metrics import get_metrics, record_metric, setup_metrics
 
 # REMOVED: nest_asyncio.apply() — this was breaking anyio's event loop
 # detection used internally by StaticFiles.
@@ -37,9 +39,14 @@ allowed_origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_methods=["POST"],
+    allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+
+@app.on_event("startup")
+async def setup_observability():
+    setup_metrics()
 
 
 # @app.on_event("startup")
@@ -73,6 +80,7 @@ async def home(request: Request):
 
 @app.post("/api/travel")
 async def travel_planner(request_data: TravelRequest):
+    started_at = time.perf_counter()
     try:
         user_message = (request_data.message or "").strip()
 
@@ -89,6 +97,11 @@ async def travel_planner(request_data: TravelRequest):
             user_input=user_message,
             thread_id=request_data.thread_id,
             answers=request_data.answers,
+        )
+        record_metric(
+            result["status"],
+            round((time.perf_counter() - started_at) * 1000),
+            result["llm_calls"],
         )
 
         return JSONResponse(
@@ -108,6 +121,7 @@ async def travel_planner(request_data: TravelRequest):
         )
 
     except Exception as e:
+        record_metric("error", round((time.perf_counter() - started_at) * 1000))
         print("ERROR:", e)
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
@@ -116,6 +130,11 @@ async def travel_planner(request_data: TravelRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "AI Travel Planner API is running"}
+
+
+@app.get("/api/metrics")
+async def metrics():
+    return {"success": True, "metrics": get_metrics()}
 
 
 @app.get("/favicon.ico")

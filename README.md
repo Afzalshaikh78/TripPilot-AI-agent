@@ -165,3 +165,22 @@ Expected response:
 ```json
 {"status":"ok","message":"AI Travel Planner API is running"}
 ```
+
+## Real Project Metrics
+
+The backend stores these metrics in Neon after every valid planning request:
+
+- total requests
+- completed plans
+- clarification pauses
+- failed requests
+- average request latency in milliseconds
+- average LLM calls per request
+
+Retrieve current values from:
+
+```text
+GET /api/metrics
+```
+
+Use these live values in resume bullets only after running real requests in production.
