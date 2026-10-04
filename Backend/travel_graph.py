@@ -28,7 +28,7 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langgraph.graph.message import add_messages
-from langchain_mistralai import ChatMistralAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 # from tools.tavily_tool import tavily_search
 # from mcp_client_test import tavily_mcp_search
@@ -51,18 +51,19 @@ def get_database_url():
     return database_url
 
 
-Mistral_api_key = os.getenv("MISTRAL_API_KEY")
+Gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-if not Mistral_api_key:
-    raise ValueError("MISTRAL_API_KEY is required.")
+if not Gemini_api_key or not Gemini_api_key.startswith("AIza"):
+    raise ValueError("A valid GEMINI_API_KEY is required.")
 
-llm = ChatMistralAI(
-    model_name="mistral-small-latest",
-    api_key=Mistral_api_key,
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash-lite",
+    api_key=Gemini_api_key,
+    thinking_budget=0,
     temperature=0.2,
     max_tokens=1600,
-    timeout=20,
-    max_retries=2,
+    request_timeout=20,
+    retries=2,
 )
 
 logger = logging.getLogger(__name__)
@@ -79,14 +80,6 @@ def timed_node(name: str):
                 logger.warning("node_timing node=%s duration_ms=%d", name, (time.perf_counter() - started_at) * 1000)
         return wrapped
     return decorator
-
-# if not Mistral_api_key:
-#     raise ValueError("MISTRAL_API_KEY not defined")
-
-# llm = ChatMistralAI(
-#     model="mistral-small-latest",
-#     api_key=Mistral_api_key,
-# )
 
 class TravelState(TypedDict):
     messages : Annotated[list[AnyMessage],add_messages]

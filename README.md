@@ -10,7 +10,7 @@ It uses a human-in-the-loop checkpoint: if a request is missing important trip d
 - FastAPI
 - LangGraph with PostgreSQL checkpoints
 - Neon Postgres
-- Mistral Small
+- Gemini 2.5 Flash
 - Tavily and OpenWeather APIs
 
 ## Project Structure
@@ -28,7 +28,7 @@ render.yaml         Render backend deployment config
 - Python 3.11+
 - Node.js 20+
 - Neon Postgres database
-- Mistral API key from Mistral Studio
+- Gemini API key from Google AI Studio
 
 ## Environment Variables
 
@@ -36,14 +36,14 @@ Create `.env` in the project root:
 
 ```env
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
-MISTRAL_API_KEY=your_mistral_api_key
+GEMINI_API_KEY=AIza_your_google_ai_studio_key
 TAVILY_API_KEY=your_tavily_key
 OPENWEATHER_API_KEY=your_openweather_key
 DEFAULT_ORIGIN_IATA=DAC
 CORS_ORIGINS=http://localhost:5173
 ```
 
-Create `MISTRAL_API_KEY` in Mistral Studio and set its usage limits before deployment.
+`GEMINI_API_KEY` must begin with `AIza`.
 
 ## Run Locally
 
