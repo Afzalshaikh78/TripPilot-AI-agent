@@ -51,14 +51,14 @@ def get_database_url():
     return database_url
 
 
-Gemini_api_key = os.getenv("GEMINI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-if not Gemini_api_key:
-    raise ValueError("A valid GEMINI_API_KEY is required.")
+if not GOOGLE_API_KEY:
+    raise ValueError("A valid GOOGLE_API_KEY is required.")
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash-lite",
-    api_key=Gemini_api_key,
+    api_key=GOOGLE_API_KEY,
     thinking_budget=0,
     temperature=0.2,
     max_tokens=1600,
