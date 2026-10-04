@@ -11,7 +11,7 @@ It uses a human-in-the-loop checkpoint: if a request is missing important trip d
 - LangGraph with PostgreSQL checkpoints
 - Neon Postgres
 - Gemini 2.5 Flash
-- Tavily, AviationStack, and OpenWeather APIs
+- Tavily and OpenWeather APIs
 
 ## Project Structure
 
@@ -38,7 +38,6 @@ Create `.env` in the project root:
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 GEMINI_API_KEY=AIza_your_google_ai_studio_key
 TAVILY_API_KEY=your_tavily_key
-AVIATIONSTACK_API_KEY=your_aviationstack_key
 OPENWEATHER_API_KEY=your_openweather_key
 DEFAULT_ORIGIN_IATA=DAC
 CORS_ORIGINS=http://localhost:5173
@@ -85,7 +84,7 @@ Open the Vite URL, usually `http://localhost:5173`.
 2. If destination, duration, dates, budget, or style is missing, execution interrupts and state is saved in Postgres.
 3. The frontend renders only missing fields as text inputs or select buttons.
 4. Form values merge with the existing structured intent and are validated again.
-5. When the intent is ready, the workflow runs flights, hotels, weather, itinerary, and final response nodes.
+5. When the intent is ready, flight guidance, hotel search, and weather retrieval run in parallel before one itinerary response is generated.
 
 ## Deploy
 

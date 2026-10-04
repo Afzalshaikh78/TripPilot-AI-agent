@@ -4,7 +4,7 @@ import traceback
 import time
 import uvicorn
 
-from fastapi import FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.concurrency import run_in_threadpool
@@ -79,7 +79,7 @@ async def home(request: Request):
 
 
 @app.post("/api/travel")
-async def travel_planner(request_data: TravelRequest):
+async def travel_planner(request_data: TravelRequest, background_tasks: BackgroundTasks):
     started_at = time.perf_counter()
     try:
         user_message = (request_data.message or "").strip()
@@ -98,7 +98,8 @@ async def travel_planner(request_data: TravelRequest):
             thread_id=request_data.thread_id,
             answers=request_data.answers,
         )
-        record_metric(
+        background_tasks.add_task(
+            record_metric,
             result["status"],
             round((time.perf_counter() - started_at) * 1000),
             result["llm_calls"],
@@ -121,7 +122,7 @@ async def travel_planner(request_data: TravelRequest):
         )
 
     except Exception as e:
-        record_metric("error", round((time.perf_counter() - started_at) * 1000))
+        background_tasks.add_task(record_metric, "error", round((time.perf_counter() - started_at) * 1000))
         print("ERROR:", e)
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
