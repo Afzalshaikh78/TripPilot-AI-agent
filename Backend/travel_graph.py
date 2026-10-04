@@ -53,7 +53,7 @@ def get_database_url():
 
 Gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-if not Gemini_api_key or not Gemini_api_key.startswith("AIza"):
+if not Gemini_api_key:
     raise ValueError("A valid GEMINI_API_KEY is required.")
 
 llm = ChatGoogleGenerativeAI(
