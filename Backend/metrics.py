@@ -40,8 +40,8 @@ def get_metrics() -> dict:
                 COUNT(*) FILTER (WHERE outcome = 'ready') AS completed_plans,
                 COUNT(*) FILTER (WHERE outcome = 'needs_clarification') AS clarification_pauses,
                 COUNT(*) FILTER (WHERE outcome = 'error') AS failed_requests,
-                COALESCE(ROUND(AVG(duration_ms)), 0) AS average_latency_ms,
-                COALESCE(ROUND(AVG(llm_calls), 2), 0) AS average_llm_calls
+                COALESCE(ROUND(AVG(duration_ms) FILTER (WHERE outcome = 'ready')), 0) AS average_completed_plan_latency_ms,
+                COALESCE(ROUND(AVG(llm_calls) FILTER (WHERE outcome = 'ready'), 2), 0) AS average_llm_calls_per_completed_plan
             FROM request_metrics
         """).fetchone()
 

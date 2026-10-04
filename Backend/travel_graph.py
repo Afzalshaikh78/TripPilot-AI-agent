@@ -28,7 +28,7 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langgraph.graph.message import add_messages
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_mistralai import ChatMistralAI
 from pydantic import BaseModel, Field
 # from tools.tavily_tool import tavily_search
 # from mcp_client_test import tavily_mcp_search
@@ -51,22 +51,18 @@ def get_database_url():
     return database_url
 
 
-Gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+Mistral_api_key = os.getenv("MISTRAL_API_KEY")
 
-if not Gemini_api_key or not Gemini_api_key.startswith("AIza"):
-    raise ValueError(
-        "A valid Gemini API key is required. Set GEMINI_API_KEY in .env to an "
-        "API key from Google AI Studio (it starts with 'AIza')."
-    )
+if not Mistral_api_key:
+    raise ValueError("MISTRAL_API_KEY is required.")
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    api_key=Gemini_api_key,
-    thinking_budget=0,
+llm = ChatMistralAI(
+    model_name="mistral-small-latest",
+    api_key=Mistral_api_key,
     temperature=0.2,
     max_tokens=1600,
-    request_timeout=20,
-    retries=2,
+    timeout=20,
+    max_retries=2,
 )
 
 logger = logging.getLogger(__name__)
@@ -345,8 +341,11 @@ def run_travel_agent(
     thread_id: str | None = None,
     answers: dict[str, Any] | None = None,
 ):
-    if not thread_id:
+    # Only clarification submissions resume a checkpoint. Every new prompt is a new trip.
+    if answers is None:
         thread_id = f"user_{uuid.uuid4().hex}"
+    elif not thread_id:
+        raise ValueError("thread_id is required when resuming a clarification.")
 
     config = {
         "configurable": {
@@ -360,6 +359,8 @@ def run_travel_agent(
         checkpointer = PostgresSaver(connection)
         checkpointer.setup()
         travel_graph = graph.compile(checkpointer=checkpointer)
+        previous_state = travel_graph.get_state(config)
+        previous_llm_calls = previous_state.values.get("llm_calls", 0) if answers is not None else 0
 
         if answers is not None:
             result = travel_graph.invoke(Command(resume=answers), config=config)
@@ -382,6 +383,8 @@ def run_travel_agent(
                 config=config,
             )
 
+    request_llm_calls = max(0, result.get("llm_calls", 0) - previous_llm_calls)
+
     interruptions = result.get("__interrupt__", ())
     if interruptions:
         payload = interruptions[0].value
@@ -395,7 +398,7 @@ def run_travel_agent(
             "hotel_results": "",
             "weather_results": "",
             "itinerary": "",
-            "llm_calls": result.get("llm_calls", 0),
+            "llm_calls": request_llm_calls,
         }
 
     return {
@@ -408,5 +411,5 @@ def run_travel_agent(
         "hotel_results": result.get("hotel_results", ""),
         "weather_results": result.get("weather_results",""),
         "itinerary": result.get("itinerary", ""),
-        "llm_calls": result.get("llm_calls", 0),
+        "llm_calls": request_llm_calls,
     }

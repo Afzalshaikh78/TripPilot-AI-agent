@@ -57,7 +57,11 @@ function App() {
     if (!response.ok || !data?.success) throw new Error(data?.error || "Something went wrong.");
 
     setThreadId(data.thread_id);
-    localStorage.setItem("travel_thread_id", data.thread_id);
+    if (data.status === "needs_clarification") {
+      localStorage.setItem("travel_thread_id", data.thread_id);
+    } else {
+      localStorage.removeItem("travel_thread_id");
+    }
     setMissingSlots(data.missing_slots || []);
     setFormAnswers({});
     setAnswer(data.status === "ready" ? data.answer : "");
@@ -74,7 +78,7 @@ function App() {
     setError("");
 
     try {
-      await requestPlan({ message: trimmed, thread_id: threadId || null });
+      await requestPlan({ message: trimmed, thread_id: null });
     } catch (err) {
       setError(err.message);
     } finally {
